@@ -1,6 +1,7 @@
 RAM Allocation [bytes]
 Variable                                                                          Address   Size
 ------------------------------------------------------------------------------------------------
+msCounter (timers_init.c)                                                         0x2800       4
 
 EEPROM Allocation [bytes]
 Variable                                                                          Address   Size
@@ -19,4 +20,5 @@ ports_init                                                                      
 vports_init                                                                       0x001EE      7
 tc0_disable                                                                       0x001F5      9
 tcc0_init                                                                         0x001FE     95
-tcc0_overflow_isr                                                                 0x0025D      1
+tcc0_overflow_isr                                                                 0x0025D     25
+tcc0_compare_capture_a_isr                                                        0x00276     16

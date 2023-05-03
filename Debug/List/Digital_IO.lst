@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.1.30  C:\Users\berry\Desktop\Repo\C++\SizeControl\Debug\List\Digital_IO.asm Wed Apr 26 22:12:44 2023
+AVRASM ver. 2.1.30  C:\Users\berry\Desktop\Repo\C++\SizeControl\Debug\List\Digital_IO.asm Tue May 02 19:59:56 2023
 
                  
                  
@@ -1143,7 +1143,7 @@ AVRASM ver. 2.1.30  C:\Users\berry\Desktop\Repo\C++\SizeControl\Debug\List\Digit
 00001a 940c 0000 	JMP  0x00
 00001c 940c 025d 	JMP  _tcc0_overflow_isr
 00001e 940c 0000 	JMP  0x00
-000020 940c 0000 	JMP  0x00
+000020 940c 0276 	JMP  _tcc0_compare_capture_a_isr
 000022 940c 0000 	JMP  0x00
 000024 940c 0000 	JMP  0x00
 000026 940c 0000 	JMP  0x00
@@ -2144,146 +2144,148 @@ AVRASM ver. 2.1.30  C:\Users\berry\Desktop\Repo\C++\SizeControl\Debug\List\Digit
                  ;
                  ;// I/O Registers definitions
                  ;#include <xmega128b1.h>
+                 ;#include <io.h>
+                 ;#include <stdint.h>
                  ;
                  ;// Disable a Timer/Counter type TC0
                  ;void tc0_disable(TC0_t *ptc)
-                 ; 0003 000F {
+                 ; 0003 0011 {
                  
                  	.CSEG
                  _tc0_disable:
                  ; .FSTART _tc0_disable
-                 ; 0003 0010 // Timer/Counter off
-                 ; 0003 0011 ptc->CTRLA=TC_CLKSEL_OFF_gc;
+                 ; 0003 0012 // Timer/Counter off
+                 ; 0003 0013 ptc->CTRLA=TC_CLKSEL_OFF_gc;
 0001f5 931a      	ST   -Y,R17
 0001f6 930a      	ST   -Y,R16
 0001f7 018d      	MOVW R16,R26
                  ;	*ptc -> R16,R17
 0001f8 e0e0      	LDI  R30,LOW(0)
 0001f9 93ec      	ST   X,R30
-                 ; 0003 0012 // Issue a reset command
-                 ; 0003 0013 ptc->CTRLFSET=TC_CMD_RESET_gc;
+                 ; 0003 0014 // Issue a reset command
+                 ; 0003 0015 ptc->CTRLFSET=TC_CMD_RESET_gc;
 0001fa 9619      	ADIW R26,9
 0001fb e0ec      	LDI  R30,LOW(12)
 0001fc 93ec      	ST   X,R30
-                 ; 0003 0014 }
+                 ; 0003 0016 }
 0001fd c05c      	RJMP _0x2060001
                  ; .FEND
                  ;
                  ;// Timer/Counter TCC0 initialization
                  ;void tcc0_init(void)
-                 ; 0003 0018 {
+                 ; 0003 001A {
                  _tcc0_init:
                  ; .FSTART _tcc0_init
-                 ; 0003 0019 unsigned char s;
-                 ; 0003 001A unsigned char n;
-                 ; 0003 001B 
-                 ; 0003 001C // Note: The correct PORTC direction for the Compare Channels
-                 ; 0003 001D // outputs is configured in the ports_init function.
-                 ; 0003 001E 
-                 ; 0003 001F // Save interrupts enabled/disabled state
-                 ; 0003 0020 s=SREG;
+                 ; 0003 001B unsigned char s;
+                 ; 0003 001C unsigned char n;
+                 ; 0003 001D 
+                 ; 0003 001E // Note: The correct PORTC direction for the Compare Channels
+                 ; 0003 001F // outputs is configured in the ports_init function.
+                 ; 0003 0020 
+                 ; 0003 0021 // Save interrupts enabled/disabled state
+                 ; 0003 0022 s=SREG;
 0001fe 931a      	ST   -Y,R17
 0001ff 930a      	ST   -Y,R16
                  ;	s -> R17
                  ;	n -> R16
 000200 b71f      	IN   R17,63
-                 ; 0003 0021 // Disable interrupts
-                 ; 0003 0022 #asm("cli")
+                 ; 0003 0023 // Disable interrupts
+                 ; 0003 0024 #asm("cli")
 000201 94f8      	CLI
-                 ; 0003 0023 
-                 ; 0003 0024 // Disable and reset the timer/counter just to be sure
-                 ; 0003 0025 tc0_disable(&TCC0);
+                 ; 0003 0025 
+                 ; 0003 0026 // Disable and reset the timer/counter just to be sure
+                 ; 0003 0027 tc0_disable(&TCC0);
 000202 e0a0      	LDI  R26,LOW(2048)
 000203 e0b8      	LDI  R27,HIGH(2048)
 000204 dff0      	RCALL _tc0_disable
-                 ; 0003 0026 // Clock source: ClkPer/1
-                 ; 0003 0027 TCC0.CTRLA=TC_CLKSEL_DIV1_gc;
+                 ; 0003 0028 // Clock source: ClkPer/1
+                 ; 0003 0029 TCC0.CTRLA=TC_CLKSEL_DIV1_gc;
 000205 e0e1      	LDI  R30,LOW(1)
 000206 93e0 0800 	STS  2048,R30
-                 ; 0003 0028 // Mode: Normal Operation, Overflow Int./Event on TOP
-                 ; 0003 0029 // Compare/Capture on channel A: Off
-                 ; 0003 002A // Compare/Capture on channel B: Off
-                 ; 0003 002B // Compare/Capture on channel C: Off
-                 ; 0003 002C // Compare/Capture on channel D: Off
-                 ; 0003 002D TCC0.CTRLB=(0<<TC0_CCDEN_bp) | (0<<TC0_CCCEN_bp) | (0<<TC0_CCBEN_bp) | (0<<TC0_CCAEN_bp) |
-                 ; 0003 002E 	TC_WGMODE_NORMAL_gc;
+                 ; 0003 002A // Mode: Normal Operation, Overflow Int./Event on TOP
+                 ; 0003 002B // Compare/Capture on channel A: Off
+                 ; 0003 002C // Compare/Capture on channel B: Off
+                 ; 0003 002D // Compare/Capture on channel C: Off
+                 ; 0003 002E // Compare/Capture on channel D: Off
+                 ; 0003 002F TCC0.CTRLB=(0<<TC0_CCDEN_bp) | (0<<TC0_CCCEN_bp) | (0<<TC0_CCBEN_bp) | (0<<TC0_CCAEN_bp) |
+                 ; 0003 0030 	TC_WGMODE_NORMAL_gc;
 000208 e0e0      	LDI  R30,LOW(0)
 000209 93e0 0801 	STS  2049,R30
-                 ; 0003 002F // Capture event source: None
-                 ; 0003 0030 // Capture event action: None
-                 ; 0003 0031 TCC0.CTRLD=TC_EVACT_OFF_gc | TC_EVSEL_OFF_gc;
+                 ; 0003 0031 // Capture event source: None
+                 ; 0003 0032 // Capture event action: None
+                 ; 0003 0033 TCC0.CTRLD=TC_EVACT_OFF_gc | TC_EVSEL_OFF_gc;
 00020b 93e0 0803 	STS  2051,R30
-                 ; 0003 0032 
-                 ; 0003 0033 // Set Timer/Counter in Normal mode
-                 ; 0003 0034 TCC0.CTRLE=TC_BYTEM_NORMAL_gc;
+                 ; 0003 0034 
+                 ; 0003 0035 // Set Timer/Counter in Normal mode
+                 ; 0003 0036 TCC0.CTRLE=TC_BYTEM_NORMAL_gc;
 00020d 93e0 0804 	STS  2052,R30
-                 ; 0003 0035 
-                 ; 0003 0036 // Overflow interrupt: High Level
-                 ; 0003 0037 // Error interrupt: Disabled
-                 ; 0003 0038 TCC0.INTCTRLA=TC_ERRINTLVL_OFF_gc | TC_OVFINTLVL_HI_gc;
+                 ; 0003 0037 
+                 ; 0003 0038 // Overflow interrupt: High Level
+                 ; 0003 0039 // Error interrupt: Disabled
+                 ; 0003 003A TCC0.INTCTRLA=TC_ERRINTLVL_OFF_gc | TC_OVFINTLVL_HI_gc;
 00020f e0e3      	LDI  R30,LOW(3)
 000210 93e0 0806 	STS  2054,R30
-                 ; 0003 0039 
-                 ; 0003 003A // Compare/Capture channel A interrupt: Disabled
-                 ; 0003 003B // Compare/Capture channel B interrupt: Disabled
-                 ; 0003 003C // Compare/Capture channel C interrupt: Disabled
-                 ; 0003 003D // Compare/Capture channel D interrupt: Disabled
-                 ; 0003 003E TCC0.INTCTRLB=TC_CCDINTLVL_OFF_gc | TC_CCCINTLVL_OFF_gc | TC_CCBINTLVL_OFF_gc | TC_CCAINTLVL_OFF_gc;
+                 ; 0003 003B 
+                 ; 0003 003C // Compare/Capture channel A interrupt: Disabled
+                 ; 0003 003D // Compare/Capture channel B interrupt: Disabled
+                 ; 0003 003E // Compare/Capture channel C interrupt: Disabled
+                 ; 0003 003F // Compare/Capture channel D interrupt: Disabled
+                 ; 0003 0040 TCC0.INTCTRLB=TC_CCDINTLVL_OFF_gc | TC_CCCINTLVL_OFF_gc | TC_CCBINTLVL_OFF_gc | TC_CCAINTLVL_OFF_gc;
 000212 e0e0      	LDI  R30,LOW(0)
 000213 93e0 0807 	STS  2055,R30
-                 ; 0003 003F 
-                 ; 0003 0040 // High resolution extension: Off
-                 ; 0003 0041 HIRESC.CTRLA&= ~HIRES_HREN0_bm;
+                 ; 0003 0041 
+                 ; 0003 0042 // High resolution extension: Off
+                 ; 0003 0043 HIRESC.CTRLA&= ~HIRES_HREN0_bm;
 000215 91e0 0890 	LDS  R30,2192
 000217 7fee      	ANDI R30,0xFE
 000218 93e0 0890 	STS  2192,R30
-                 ; 0003 0042 
-                 ; 0003 0043 // Advanced Waveform Extension initialization
-                 ; 0003 0044 // Optimize for speed
-                 ; 0003 0045 #pragma optsize-
-                 ; 0003 0046 // Disable locking the AWEX configuration registers just to be sure
-                 ; 0003 0047 n=MCU.AWEXLOCK & (~MCU_AWEXCLOCK_bm);
+                 ; 0003 0044 
+                 ; 0003 0045 // Advanced Waveform Extension initialization
+                 ; 0003 0046 // Optimize for speed
+                 ; 0003 0047 #pragma optsize-
+                 ; 0003 0048 // Disable locking the AWEX configuration registers just to be sure
+                 ; 0003 0049 n=MCU.AWEXLOCK & (~MCU_AWEXCLOCK_bm);
 00021a 91e0 0099 	LDS  R30,153
 00021c 7fee      	ANDI R30,0xFE
 00021d 2f0e      	MOV  R16,R30
-                 ; 0003 0048 CCP=CCP_IOREG_gc;
+                 ; 0003 004A CCP=CCP_IOREG_gc;
 00021e ede8      	LDI  R30,LOW(216)
 00021f bfe4      	OUT  0x34,R30
-                 ; 0003 0049 MCU.AWEXLOCK=n;
+                 ; 0003 004B MCU.AWEXLOCK=n;
 000220 9300 0099 	STS  153,R16
-                 ; 0003 004A // Restore optimization for size if needed
-                 ; 0003 004B #pragma optsize_default
-                 ; 0003 004C 
-                 ; 0003 004D // Pattern generation: Off
-                 ; 0003 004E // Dead time insertion: Off
-                 ; 0003 004F AWEXC.CTRL=(0<<AWEX_PGM_bp) | (0<<AWEX_CWCM_bp) | (0<<AWEX_DTICCDEN_bp) | (0<<AWEX_DTICCCEN_bp) |
-                 ; 0003 0050 	(0<<AWEX_DTICCBEN_bp) | (0<<AWEX_DTICCAEN_bp);
+                 ; 0003 004C // Restore optimization for size if needed
+                 ; 0003 004D #pragma optsize_default
+                 ; 0003 004E 
+                 ; 0003 004F // Pattern generation: Off
+                 ; 0003 0050 // Dead time insertion: Off
+                 ; 0003 0051 AWEXC.CTRL=(0<<AWEX_PGM_bp) | (0<<AWEX_CWCM_bp) | (0<<AWEX_DTICCDEN_bp) | (0<<AWEX_DTICCCEN_bp) |
+                 ; 0003 0052 	(0<<AWEX_DTICCBEN_bp) | (0<<AWEX_DTICCAEN_bp);
 000222 e0e0      	LDI  R30,LOW(0)
 000223 93e0 0880 	STS  2176,R30
-                 ; 0003 0051 
-                 ; 0003 0052 // Fault protection initialization
-                 ; 0003 0053 // Fault detection on OCD Break detection: On
-                 ; 0003 0054 // Fault detection restart mode: Latched Mode
-                 ; 0003 0055 // Fault detection action: None (Fault protection disabled)
-                 ; 0003 0056 AWEXC.FDCTRL=(AWEXC.FDCTRL & (~(AWEX_FDDBD_bm | AWEX_FDMODE_bm | AWEX_FDACT_gm))) |
-                 ; 0003 0057 	(0<<AWEX_FDDBD_bp) | (0<<AWEX_FDMODE_bp) | AWEX_FDACT_NONE_gc;
+                 ; 0003 0053 
+                 ; 0003 0054 // Fault protection initialization
+                 ; 0003 0055 // Fault detection on OCD Break detection: On
+                 ; 0003 0056 // Fault detection restart mode: Latched Mode
+                 ; 0003 0057 // Fault detection action: None (Fault protection disabled)
+                 ; 0003 0058 AWEXC.FDCTRL=(AWEXC.FDCTRL & (~(AWEX_FDDBD_bm | AWEX_FDMODE_bm | AWEX_FDACT_gm))) |
+                 ; 0003 0059 	(0<<AWEX_FDDBD_bp) | (0<<AWEX_FDMODE_bp) | AWEX_FDACT_NONE_gc;
 000225 91e0 0883 	LDS  R30,2179
 000227 7ee8      	ANDI R30,LOW(0xE8)
 000228 93e0 0883 	STS  2179,R30
-                 ; 0003 0058 // Fault detect events:
-                 ; 0003 0059 // Event channel 0: Off
-                 ; 0003 005A // Event channel 1: Off
-                 ; 0003 005B // Event channel 2: Off
-                 ; 0003 005C // Event channel 3: Off
-                 ; 0003 005D // Event channel 4: Off
-                 ; 0003 005E // Event channel 5: Off
-                 ; 0003 005F // Event channel 6: Off
-                 ; 0003 0060 // Event channel 7: Off
-                 ; 0003 0061 AWEXC.FDEMASK=0b00000000;
+                 ; 0003 005A // Fault detect events:
+                 ; 0003 005B // Event channel 0: Off
+                 ; 0003 005C // Event channel 1: Off
+                 ; 0003 005D // Event channel 2: Off
+                 ; 0003 005E // Event channel 3: Off
+                 ; 0003 005F // Event channel 4: Off
+                 ; 0003 0060 // Event channel 5: Off
+                 ; 0003 0061 // Event channel 6: Off
+                 ; 0003 0062 // Event channel 7: Off
+                 ; 0003 0063 AWEXC.FDEMASK=0b00000000;
 00022a e0e0      	LDI  R30,LOW(0)
 00022b 93e0 0882 	STS  2178,R30
-                 ; 0003 0062 // Make sure the fault detect flag is cleared
-                 ; 0003 0063 AWEXC.STATUS|=AWEXC.STATUS & AWEX_FDF_bm;
+                 ; 0003 0064 // Make sure the fault detect flag is cleared
+                 ; 0003 0065 AWEXC.STATUS|=AWEXC.STATUS & AWEX_FDF_bm;
 00022d e8a4      	LDI  R26,LOW(2180)
 00022e e0b8      	LDI  R27,HIGH(2180)
 00022f 2e0a      	MOV  R0,R26
@@ -2293,74 +2295,166 @@ AVRASM ver. 2.1.30  C:\Users\berry\Desktop\Repo\C++\SizeControl\Debug\List\Digit
 000234 2bea      	OR   R30,R26
 000235 2da0      	MOV  R26,R0
 000236 93ec      	ST   X,R30
-                 ; 0003 0064 
-                 ; 0003 0065 // Clear the interrupt flags
-                 ; 0003 0066 TCC0.INTFLAGS=TCC0.INTFLAGS;
+                 ; 0003 0066 
+                 ; 0003 0067 // Clear the interrupt flags
+                 ; 0003 0068 TCC0.INTFLAGS=TCC0.INTFLAGS;
 000237 91e0 080c 	LDS  R30,2060
 000239 93e0 080c 	STS  2060,R30
-                 ; 0003 0067 // Set Counter register
-                 ; 0003 0068 TCC0.CNT=0x0000;
+                 ; 0003 0069 // Set Counter register
+                 ; 0003 006A TCC0.CNT=0x0000;
 00023b e0e0      	LDI  R30,LOW(0)
 00023c e0f0      	LDI  R31,HIGH(0)
 00023d 93e0 0820 	STS  2080,R30
 00023f 93f0 0821 	STS  2080+1,R31
-                 ; 0003 0069 // Set Period register
-                 ; 0003 006A TCC0.PER=0x07CF;
+                 ; 0003 006B // Set Period register
+                 ; 0003 006C TCC0.PER=0x07CF;
 000241 ecef      	LDI  R30,LOW(1999)
 000242 e0f7      	LDI  R31,HIGH(1999)
 000243 93e0 0826 	STS  2086,R30
 000245 93f0 0827 	STS  2086+1,R31
-                 ; 0003 006B // Set channel A Compare/Capture register
-                 ; 0003 006C TCC0.CCA=0x0000;
+                 ; 0003 006D // Set channel A Compare/Capture register
+                 ; 0003 006E TCC0.CCA=0x0000;
 000247 e0e0      	LDI  R30,LOW(0)
 000248 e0f0      	LDI  R31,HIGH(0)
 000249 93e0 0828 	STS  2088,R30
 00024b 93f0 0829 	STS  2088+1,R31
-                 ; 0003 006D // Set channel B Compare/Capture register
-                 ; 0003 006E TCC0.CCB=0x0000;
+                 ; 0003 006F // Set channel B Compare/Capture register
+                 ; 0003 0070 TCC0.CCB=0x0000;
 00024d 93e0 082a 	STS  2090,R30
 00024f 93f0 082b 	STS  2090+1,R31
-                 ; 0003 006F // Set channel C Compare/Capture register
-                 ; 0003 0070 TCC0.CCC=0x0000;
+                 ; 0003 0071 // Set channel C Compare/Capture register
+                 ; 0003 0072 TCC0.CCC=0x0000;
 000251 93e0 082c 	STS  2092,R30
 000253 93f0 082d 	STS  2092+1,R31
-                 ; 0003 0071 // Set channel D Compare/Capture register
-                 ; 0003 0072 TCC0.CCD=0x0000;
+                 ; 0003 0073 // Set channel D Compare/Capture register
+                 ; 0003 0074 TCC0.CCD=0x0000;
 000255 93e0 082e 	STS  2094,R30
 000257 93f0 082f 	STS  2094+1,R31
-                 ; 0003 0073 
-                 ; 0003 0074 // Restore interrupts enabled/disabled state
-                 ; 0003 0075 SREG=s;
+                 ; 0003 0075 
+                 ; 0003 0076 // Restore interrupts enabled/disabled state
+                 ; 0003 0077 SREG=s;
 000259 bf1f      	OUT  0x3F,R17
-                 ; 0003 0076 }
+                 ; 0003 0078 }
                  _0x2060001:
 00025a 9109      	LD   R16,Y+
 00025b 9119      	LD   R17,Y+
 00025c 9508      	RET
                  ; .FEND
                  ;
+                 ;static uint32_t msCounter = 0;
                  ;// Timer/Counter TCC0 Overflow/Underflow interrupt service routine
                  ;interrupt [TCC0_OVF_vect] void tcc0_overflow_isr(void)
-                 ; 0003 007A {
+                 ; 0003 007D {
                  _tcc0_overflow_isr:
                  ; .FSTART _tcc0_overflow_isr
-                 ; 0003 007B // Write your code here
-                 ; 0003 007C 
-                 ; 0003 007D }
-00025d 9518      	RETI
+00025d 936a      	ST   -Y,R22
+00025e 937a      	ST   -Y,R23
+00025f 93aa      	ST   -Y,R26
+000260 93ba      	ST   -Y,R27
+000261 93ea      	ST   -Y,R30
+000262 93fa      	ST   -Y,R31
+000263 b7ef      	IN   R30,SREG
+000264 93ea      	ST   -Y,R30
+                 ; 0003 007E  msCounter++;
+000265 e0a0      	LDI  R26,LOW(_msCounter_G003)
+000266 e2b8      	LDI  R27,HIGH(_msCounter_G003)
+000267 d01e      	RCALL __GETD1P_INC
+                +
+000268 5fef     +SUBI R30 , LOW ( - 1 )
+000269 4fff     +SBCI R31 , HIGH ( - 1 )
+00026a 4f6f     +SBCI R22 , BYTE3 ( - 1 )
+00026b 4f7f     +SBCI R23 , BYTE4 ( - 1 )
+                 	__SUBD1N -1
+00026c d01e      	RCALL __PUTDP1_DEC
+                 ; 0003 007F 
+                 ; 0003 0080 }
+00026d 91e9      	LD   R30,Y+
+00026e bfef      	OUT  SREG,R30
+00026f 91f9      	LD   R31,Y+
+000270 91e9      	LD   R30,Y+
+000271 91b9      	LD   R27,Y+
+000272 91a9      	LD   R26,Y+
+000273 9179      	LD   R23,Y+
+000274 9169      	LD   R22,Y+
+000275 9518      	RETI
                  ; .FEND
                  ;
+                 ;// Timer/Counter TCCO Compare/Capture A interrupt service routine
+                 ;interrupt [TCC0_CCA_vect] void tcc0_compare_capture_a_isr(void)
+                 ; 0003 0084 {
+                 _tcc0_compare_capture_a_isr:
+                 ; .FSTART _tcc0_compare_capture_a_isr
+000276 93ea      	ST   -Y,R30
+000277 b7ef      	IN   R30,SREG
+000278 93ea      	ST   -Y,R30
+                 ; 0003 0085 
+                 ; 0003 0086 	// Ensure that theCompare/Capture A interrupt flag is cleared
+                 ; 0003 0087 	if (TCC0.INTFLAGS & TC0_CCAIF_bm) TCC0.INTFLAGS|=TC0_CCAIF_bm;
+000279 91e0 080c 	LDS  R30,2060
+00027b 71e0      	ANDI R30,LOW(0x10)
+00027c f029      	BREQ _0x60003
+00027d 91e0 080c 	LDS  R30,2060
+00027f 61e0      	ORI  R30,0x10
+000280 93e0 080c 	STS  2060,R30
+                 ; 0003 0088 
+                 ; 0003 0089 
+                 ; 0003 008A }
+                 _0x60003:
+000282 91e9      	LD   R30,Y+
+000283 bfef      	OUT  SREG,R30
+000284 91e9      	LD   R30,Y+
+000285 9518      	RETI
+                 ; .FEND
+                 ;
+                 ;uint32_t getTime(void)
+                 ; 0003 008D {
+                 ; 0003 008E 	unsigned char s;
+                 ; 0003 008F 	uint32_t tempValHolder;
+                 ; 0003 0090 
+                 ; 0003 0091 	// Save interrupts enabled/disabled state
+                 ; 0003 0092 	s=SREG;
+                 ;	s -> R17
+                 ;	tempValHolder -> Y+1
+                 ; 0003 0093 	// Disable interrupts
+                 ; 0003 0094 	#asm("cli")
+                 ; 0003 0095 
+                 ; 0003 0096 	// Copy the value with interrupts disables so the
+                 ; 0003 0097 	//value isn't corrupted by an untimely interrupt
+                 ; 0003 0098 	tempValHolder = msCounter;
+                 ; 0003 0099 
+                 ; 0003 009A 	// Restore interrupts enabled/disabled state
+                 ; 0003 009B 	SREG=s;
+                 ; 0003 009C 
+                 ; 0003 009D }
                  
                  	.CSEG
                  
                  	.CSEG
                  
                  	.CSEG
+                 
+                 	.DSEG
+                 _msCounter_G003:
+002800           	.BYTE 0x4
                  
                  	.CSEG
                  ;RUNTIME LIBRARY
                  
                  	.CSEG
+                 __GETD1P_INC:
+000286 91ed      	LD   R30,X+
+000287 91fd      	LD   R31,X+
+000288 916d      	LD   R22,X+
+000289 917d      	LD   R23,X+
+00028a 9508      	RET
+                 
+                 __PUTDP1_DEC:
+00028b 937e      	ST   -X,R23
+00028c 936e      	ST   -X,R22
+00028d 93fe      	ST   -X,R31
+00028e 93ee      	ST   -X,R30
+00028f 9508      	RET
+                 
                  ;END OF CODE MARKER
                  __END_OF_CODE:
 
@@ -2382,15 +2476,15 @@ counted separately from r26..r31 here.
 ATxmega128B1 register use summary:
 r0 :   2 r1 :   0 r2 :   0 r3 :   0 r4 :   0 r5 :   0 r6 :   0 r7 :   0 
 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 r13:   0 r14:   0 r15:   0 
-r16:   9 r17:  12 r18:   0 r19:   0 r20:   0 r21:   0 r22:   0 r23:   0 
-r24:   3 r25:   1 r26:   9 r27:   3 r28:   1 r29:   1 r30: 214 r31:  14 
-x  :   5 y  :   8 z  :   0 
-Registers used: 13 out of 35 (37.1%)
+r16:   9 r17:  12 r18:   0 r19:   0 r20:   0 r21:   0 r22:   5 r23:   5 
+r24:   3 r25:   1 r26:  12 r27:   6 r28:   1 r29:   1 r30: 234 r31:  19 
+x  :  13 y  :  26 z  :   0 
+Registers used: 15 out of 35 (42.9%)
 
 ATxmega128B1 instruction use summary:
 .lds  :   0 .lds.l:   0 .sts  :   0 .sts.l:   0 adc   :   0 add   :   0 
-adiw  :   1 and   :   0 andi  :  18 asr   :   0 bclr  :   0 bld   :   0 
-brbc  :   0 brbs  :   0 brcc  :   0 brcs  :   0 break :   0 breq  :   1 
+adiw  :   1 and   :   0 andi  :  19 asr   :   0 bclr  :   0 bld   :   0 
+brbc  :   0 brbs  :   0 brcc  :   0 brcs  :   0 break :   0 breq  :   2 
 brge  :   0 brhc  :   0 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 
 brlt  :   0 brmi  :   0 brne  :   1 brpl  :   0 brsh  :   0 brtc  :   0 
 brts  :   0 brvc  :   0 brvs  :   0 bset  :   0 bst   :   0 call  :   0 
@@ -2398,23 +2492,23 @@ cbi   :   0 cbr   :   0 clc   :   0 clh   :   0 cli   :   4 cln   :   0
 clr   :   1 cls   :   0 clt   :   0 clv   :   0 clz   :   0 com   :   0 
 cp    :   0 cpc   :   0 cpi   :   0 cpse  :   0 dec   :   0 des   :   0 
 eicall:   0 eijmp :   0 elpm  :   0 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   2 inc   :   0 jmp   :  82 
-ld    :   3 ldd   :   0 ldi   :  48 lds   :  21 lpm   :   0 lsl   :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   4 inc   :   0 jmp   :  82 
+ld    :  16 ldd   :   0 ldi   :  50 lds   :  23 lpm   :   0 lsl   :   0 
 lsr   :   0 mov   :   6 movw  :   1 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   1 ori   :   3 out   :  14 pop   :   0 
-push  :   0 rcall :   5 ret   :   3 reti  :   1 rjmp  :   4 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :   0 sbic  :   0 sbis  :   0 
+neg   :   0 nop   :   0 or    :   1 ori   :   4 out   :  16 pop   :   0 
+push  :   0 rcall :   7 ret   :   5 reti  :   2 rjmp  :   4 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   3 sbi   :   0 sbic  :   0 sbis  :   0 
 sbiw  :   1 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :  10 std   :   0 sts   : 131 
-sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 24 out of 119 (20.2%)
+sez   :   0 sleep :   0 spm   :   0 st    :  23 std   :   0 sts   : 132 
+sub   :   0 subi  :   1 swap  :   0 tst   :   0 wdr   :   0 
+Instructions used: 26 out of 119 (21.8%)
 
 ATxmega128B1 memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0004bc   1194     18   1212  139264   0.9%
-[.dseg] 0x002000 0x002800      0      0      0    8192   0.0%
+[.cseg] 0x000000 0x000520   1294     18   1312  139264   0.9%
+[.dseg] 0x002000 0x002804      0      4      4    8192   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    2048   0.0%
 
 Assembly complete, 0 errors, 0 warnings
